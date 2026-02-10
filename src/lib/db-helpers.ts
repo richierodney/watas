@@ -3,8 +3,20 @@ import { supabase, type Course, type Group, type Assignment, type GroupId } from
 // Re-export types for convenience
 export type { Course, Group, Assignment, GroupId } from "./supabase";
 
+// Helper to check if Supabase is configured
+const isSupabaseConfigured = () => {
+  return !!(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+};
+
 // Courses
 export async function getCourses(): Promise<Course[]> {
+  if (!isSupabaseConfigured()) {
+    console.warn("Supabase not configured. Returning empty array.");
+    return [];
+  }
   const { data, error } = await supabase
     .from("courses")
     .select("*")
@@ -18,6 +30,10 @@ export async function getCourses(): Promise<Course[]> {
 }
 
 export async function createCourse(code: string, name: string): Promise<Course | null> {
+  if (!isSupabaseConfigured()) {
+    console.warn("Supabase not configured. Cannot create course.");
+    return null;
+  }
   const { data, error } = await supabase
     .from("courses")
     .insert({ code, name })
@@ -32,6 +48,10 @@ export async function createCourse(code: string, name: string): Promise<Course |
 }
 
 export async function updateCourse(id: string, code: string, name: string): Promise<Course | null> {
+  if (!isSupabaseConfigured()) {
+    console.warn("Supabase not configured. Cannot update course.");
+    return null;
+  }
   const { data, error } = await supabase
     .from("courses")
     .update({ code, name })
@@ -47,6 +67,10 @@ export async function updateCourse(id: string, code: string, name: string): Prom
 }
 
 export async function deleteCourse(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured()) {
+    console.warn("Supabase not configured. Cannot delete course.");
+    return false;
+  }
   const { error } = await supabase.from("courses").delete().eq("id", id);
 
   if (error) {
@@ -58,6 +82,12 @@ export async function deleteCourse(id: string): Promise<boolean> {
 
 // Groups
 export async function getGroups(): Promise<Group[]> {
+  if (!isSupabaseConfigured()) {
+    return [
+      { id: "Group 1" as GroupId, enabled: true },
+      { id: "Group 2" as GroupId, enabled: true },
+    ];
+  }
   const { data, error } = await supabase
     .from("groups")
     .select("*")
@@ -74,6 +104,10 @@ export async function getGroups(): Promise<Group[]> {
 }
 
 export async function updateGroup(id: GroupId, enabled: boolean): Promise<Group | null> {
+  if (!isSupabaseConfigured()) {
+    console.warn("Supabase not configured. Cannot update group.");
+    return null;
+  }
   const { data, error } = await supabase
     .from("groups")
     .update({ enabled })
@@ -90,6 +124,9 @@ export async function updateGroup(id: GroupId, enabled: boolean): Promise<Group 
 
 // Assignments
 export async function getAssignments(): Promise<Assignment[]> {
+  if (!isSupabaseConfigured()) {
+    return [];
+  }
   const { data, error } = await supabase
     .from("assignments")
     .select("*")
@@ -110,6 +147,10 @@ export async function createAssignment(
   dueDate: string,
   description?: string,
 ): Promise<Assignment | null> {
+  if (!isSupabaseConfigured()) {
+    console.warn("Supabase not configured. Cannot create assignment.");
+    return null;
+  }
   const { data, error } = await supabase
     .from("assignments")
     .insert({
@@ -131,6 +172,10 @@ export async function createAssignment(
 }
 
 export async function deleteAssignment(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured()) {
+    console.warn("Supabase not configured. Cannot delete assignment.");
+    return false;
+  }
   const { error } = await supabase.from("assignments").delete().eq("id", id);
 
   if (error) {
@@ -146,6 +191,10 @@ export async function trackPageVisit(
   userAgent?: string,
   referrer?: string,
 ): Promise<boolean> {
+  if (!isSupabaseConfigured()) {
+    // Silently fail during build/prerender
+    return false;
+  }
   const { error } = await supabase.from("page_visits").insert({
     page_path: pagePath,
     user_agent: userAgent || null,
@@ -173,6 +222,16 @@ export type VisitStats = {
 };
 
 export async function getVisitStats(): Promise<VisitStats | null> {
+  if (!isSupabaseConfigured()) {
+    return {
+      total: 0,
+      today: 0,
+      thisWeek: 0,
+      thisMonth: 0,
+      byPage: [],
+      recent: [],
+    };
+  }
   const now = new Date();
   const today = new Date(now.setHours(0, 0, 0, 0));
   const thisWeek = new Date(today);

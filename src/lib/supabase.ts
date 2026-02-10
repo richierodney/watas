@@ -3,13 +3,20 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    "Supabase URL or Anon Key not found. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local",
-  );
-}
+// Create a dummy client if env vars are missing (for build time)
+// This prevents build errors, but the app won't work until env vars are set
+const createSupabaseClient = () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    // Return a mock client that will fail gracefully
+    return createClient(
+      "https://placeholder.supabase.co",
+      "placeholder-key",
+    );
+  }
+  return createClient(supabaseUrl, supabaseAnonKey);
+};
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createSupabaseClient();
 
 // Database Types
 export type GroupId = "Group 1" | "Group 2";
