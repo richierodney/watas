@@ -1,5 +1,8 @@
 import { supabase, type Course, type Group, type Assignment, type GroupId } from "./supabase";
 
+// Re-export types for convenience
+export type { Course, Group, Assignment, GroupId } from "./supabase";
+
 // Courses
 export async function getCourses(): Promise<Course[]> {
   const { data, error } = await supabase
