@@ -88,3 +88,15 @@ CREATE TABLE IF NOT EXISTS page_visits (
 CREATE INDEX IF NOT EXISTS idx_page_visits_visited_at ON page_visits(visited_at);
 CREATE INDEX IF NOT EXISTS idx_page_visits_page_path ON page_visits(page_path);
 
+-- Support / Suggestions table
+CREATE TABLE IF NOT EXISTS support_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  support_type VARCHAR(50) NOT NULL, -- e.g. \"Missing Assignment\", \"Feature Request\", \"Bug\", \"Other\"
+  contact_whatsapp VARCHAR(100),
+  contact_phone VARCHAR(100),
+  description TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_support_requests_created_at ON support_requests(created_at);
+

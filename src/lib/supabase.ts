@@ -57,3 +57,12 @@ export type PageVisit = {
   visited_at: string;
 };
 
+export type SupportRequest = {
+  id: string;
+  support_type: string;
+  contact_whatsapp?: string;
+  contact_phone?: string;
+  description: string;
+  created_at: string;
+};
+

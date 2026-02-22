@@ -12,7 +12,15 @@ import {
 import { MarkdownEditor } from "./markdown-editor";
 import { MarkdownRenderer } from "./markdown-renderer";
 
-export function AssignmentCreator() {
+type AssignmentCreatorProps = {
+  initialDescription?: string | null;
+  onInitialDescriptionUsed?: () => void;
+};
+
+export function AssignmentCreator({
+  initialDescription,
+  onInitialDescriptionUsed,
+}: AssignmentCreatorProps = {}) {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [courses, setCourses] = useState<Array<{ code: string; name: string }>>(
     [],
@@ -28,6 +36,13 @@ export function AssignmentCreator() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (initialDescription != null && initialDescription !== "") {
+      setDescription(initialDescription);
+      onInitialDescriptionUsed?.();
+    }
+  }, [initialDescription]);
 
   const loadData = async () => {
     setLoading(true);

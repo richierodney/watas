@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 
-const ADMIN_PASSWORD = "admin123"; // TODO: Move to env variable or proper auth
-
 type AdminAuthProps = {
   onAuthenticated: () => void;
 };
@@ -11,15 +9,32 @@ type AdminAuthProps = {
 export function AdminAuth({ onAuthenticated }: AdminAuthProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ password }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "Incorrect password");
+        setPassword("");
+        return;
+      }
       sessionStorage.setItem("admin_authenticated", "true");
       onAuthenticated();
-    } else {
-      setError("Incorrect password");
+    } catch {
+      setError("Something went wrong");
       setPassword("");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,13 +73,21 @@ export function AdminAuth({ onAuthenticated }: AdminAuthProps) {
           </div>
           <button
             type="submit"
-            className="rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-200"
+            disabled={loading}
+            className="rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-200 disabled:opacity-50"
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
       </div>
     </div>
   );
 }
+
+
+
+
+
+
+
 

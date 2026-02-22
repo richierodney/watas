@@ -6,9 +6,15 @@ import { CourseManager } from "./course-manager";
 import { GroupManager } from "./group-manager";
 import { AssignmentCreator } from "./assignment-creator";
 import { VisitStats } from "./visit-stats";
+import { SupportRequestsPanel } from "./support-requests-panel";
+import { AdminUsersPanel } from "./admin-users-panel";
+import { AdminUsagePanel } from "./admin-usage-panel";
+import { AdminAIModelPanel } from "./admin-ai-model-panel";
+import { AdminAssignmentCurator } from "./admin-assignment-curator";
 
 export default function AdminDashboard() {
   const [authenticated, setAuthenticated] = useState(false);
+  const [draftDescriptionForAssignment, setDraftDescriptionForAssignment] = useState<string | null>(null);
 
   useEffect(() => {
     const isAuth = sessionStorage.getItem("admin_authenticated") === "true";
@@ -68,14 +74,51 @@ export default function AdminDashboard() {
             <h2 className="mb-4 text-xl font-semibold text-slate-900">
               Assignment Creator
             </h2>
-            <AssignmentCreator />
+            <AdminAssignmentCurator
+              onAcceptDraft={(text) => setDraftDescriptionForAssignment(text)}
+            />
+            <div className="mt-4 border-t border-orange-100 pt-4">
+              <AssignmentCreator
+                initialDescription={draftDescriptionForAssignment}
+                onInitialDescriptionUsed={() => setDraftDescriptionForAssignment(null)}
+              />
+            </div>
           </section>
 
           <section className="lg:col-span-2 rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-orange-100">
             <h2 className="mb-4 text-xl font-semibold text-slate-900">
-              Visit Statistics
+              Users & PRO
             </h2>
-            <VisitStats />
+            <AdminUsersPanel />
+          </section>
+
+          <section className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-orange-100">
+            <h2 className="mb-4 text-xl font-semibold text-slate-900">
+              AI model
+            </h2>
+            <AdminAIModelPanel />
+          </section>
+
+          <section className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-orange-100">
+            <h2 className="mb-4 text-xl font-semibold text-slate-900">
+              API key usage
+            </h2>
+            <AdminUsagePanel />
+          </section>
+
+          <section className="lg:col-span-2 grid gap-6 rounded-2xl bg-transparent p-0 sm:grid-cols-2 sm:p-0">
+            <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-orange-100">
+              <h2 className="mb-4 text-xl font-semibold text-slate-900">
+                Visit Statistics
+              </h2>
+              <VisitStats />
+            </div>
+            <div className="rounded-2xl bg-white/80 p-6 shadow-sm ring-1 ring-emerald-100">
+              <h2 className="mb-4 text-xl font-semibold text-slate-900">
+                Support & Suggestions
+              </h2>
+              <SupportRequestsPanel />
+            </div>
           </section>
         </div>
 

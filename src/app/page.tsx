@@ -1,6 +1,16 @@
 import AssignmentDashboard from "@/components/assignment-dashboard";
+import { getAssignments, getGroups } from "@/lib/db-helpers";
 
-export default function Home() {
-  return <AssignmentDashboard />;
+export default async function Home() {
+  const [assignments, groups] = await Promise.all([
+    getAssignments(),
+    getGroups(),
+  ]);
+  return (
+    <AssignmentDashboard
+      initialAssignments={assignments}
+      initialGroups={groups}
+    />
+  );
 }
 

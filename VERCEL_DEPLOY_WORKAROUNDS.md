@@ -69,3 +69,10 @@ For the easiest experience, use the Vercel Dashboard:
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 5. Deploy!
 
+
+
+
+
+
+
+

@@ -1,7 +1,7 @@
-import { supabase, type Course, type Group, type Assignment, type GroupId } from "./supabase";
+import { supabase, type Course, type Group, type Assignment, type GroupId, type SupportRequest } from "./supabase";
 
 // Re-export types for convenience
-export type { Course, Group, Assignment, GroupId } from "./supabase";
+export type { Course, Group, Assignment, GroupId, SupportRequest } from "./supabase";
 
 // Helper to check if Supabase is configured
 const isSupabaseConfigured = () => {
@@ -319,3 +319,96 @@ export async function getVisitStats(): Promise<VisitStats | null> {
   };
 }
 
+// Support / Suggestions
+export async function createSupportRequest(
+  supportType: string,
+  contactWhatsapp: string | undefined,
+  contactPhone: string | undefined,
+  description: string,
+): Promise<SupportRequest | null> {
+  if (!isSupabaseConfigured()) {
+    console.warn("Supabase not configured. Cannot create support request.");
+    return null;
+  }
+  const { data, error } = await supabase
+    .from("support_requests")
+    .insert({
+      support_type: supportType,
+      contact_whatsapp: contactWhatsapp || null,
+      contact_phone: contactPhone || null,
+      description,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error creating support request:", error);
+    return null;
+  }
+  return data;
+}
+
+export async function getSupportRequests(): Promise<SupportRequest[]> {
+  if (!isSupabaseConfigured()) {
+    return [];
+  }
+  const { data, error } = await supabase
+    .from("support_requests")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching support requests:", error);
+    return [];
+  }
+  return data || [];
+}
+
+// Assignment completions (logged-in users only; PRO and non-PRO)
+export async function getCompletedAssignmentIds(): Promise<string[]> {
+  if (!isSupabaseConfigured()) return [];
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data, error } = await supabase
+    .from("assignment_completions")
+    .select("assignment_id")
+    .eq("user_id", user.id);
+  if (error) {
+    const err = error as { message?: string; code?: string };
+    const msg = err.message ?? err.code ?? (typeof error === "object" && Object.keys(error).length ? JSON.stringify(error) : "Unknown error");
+    console.warn("Assignment completions unavailable:", msg, "(Run migration 003_assignment_completions.sql if needed.)");
+    return [];
+  }
+  return (data ?? []).map((r) => r.assignment_id);
+}
+
+export async function setAssignmentCompleted(
+  assignmentId: string,
+  completed: boolean,
+): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+  if (completed) {
+    const { error } = await supabase
+      .from("assignment_completions")
+      .upsert({ user_id: user.id, assignment_id: assignmentId }, { onConflict: "user_id,assignment_id" });
+    if (error) {
+      const msg = (error as { message?: string }).message ?? String(error);
+      console.warn("Could not mark assignment complete:", msg);
+      return false;
+    }
+  } else {
+    const { error } = await supabase
+      .from("assignment_completions")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("assignment_id", assignmentId);
+    if (error) {
+      const msg = (error as { message?: string }).message ?? String(error);
+      console.warn("Could not unmark assignment:", msg);
+      return false;
+    }
+  }
+  return true;
+}

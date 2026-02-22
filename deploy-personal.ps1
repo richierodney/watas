@@ -22,3 +22,10 @@ Write-Host "   - NEXT_PUBLIC_SUPABASE_URL" -ForegroundColor Gray
 Write-Host "   - NEXT_PUBLIC_SUPABASE_ANON_KEY" -ForegroundColor Gray
 Write-Host "4. Click Deploy!" -ForegroundColor Yellow
 
+
+
+
+
+
+
+
